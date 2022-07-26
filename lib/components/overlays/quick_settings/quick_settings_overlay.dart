@@ -18,6 +18,7 @@ import 'dart:async';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_account_page.dart';
+import 'package:pangolin/components/overlays/quick_settings/pages/qs_calendar_page.dart';
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_language_page.dart';
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_network_page.dart';
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_theme_page.dart';
@@ -128,6 +129,7 @@ class _QuickSettingsOverlayState extends State<QuickSettingsOverlay>
                     "/pages/network": (context) => const QsNetworkPage(),
                     "/pages/theme": (context) => const QsThemePage(),
                     "/pages/language": (context) => const QsLanguagePage(),
+                    "/pages/calendar": (context) => const QsCalendarPage(),
                   },
                   theme: Theme.of(context)
                       .copyWith(scaffoldBackgroundColor: Colors.transparent),
@@ -402,6 +404,8 @@ class QsMain extends StatelessWidget {
                       leading: const Icon(Icons.calendar_today),
                       title: "$date - $time",
                       margin: EdgeInsets.zero,
+                      onPressed: () =>
+                          Navigator.pushNamed(context, "/pages/calendar"),
                     ),
                   ),
                 ),
