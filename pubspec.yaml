@@ -37,6 +37,7 @@ dependencies:
   gsettings: ^0.2.5
   hive_flutter: any
   http: ^0.13.0
+  syncfusion_flutter_calendar: ^20.2.40
   intl: ^0.17.0
   jovial_svg: ^1.1.5
   logging: ^1.0.2
