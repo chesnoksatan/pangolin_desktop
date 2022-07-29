@@ -1,8 +1,7 @@
 import 'package:pangolin/components/overlays/quick_settings/widgets/qs_titlebar.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
-import 'package:pangolin/utils/other/date_time_manager.dart';
 import 'package:pangolin/utils/other/events_manager.dart';
-import 'package:provider/provider.dart';
+import 'package:pangolin/widgets/global/quick_button.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class QsCalendarPage extends StatelessWidget {
@@ -11,17 +10,18 @@ class QsCalendarPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const QsTitlebar(
+      appBar: QsTitlebar(
         title: "Calendar",
+        trailing: [
+          QuickActionButton(
+            leading: const Icon(Icons.add),
+            onPressed: () => Navigator.pushNamed(context, "/pages/new_event"),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ValueListenableBuilder(
-          valueListenable: DateTimeManager.getDateNotifier()!,
-          builder: (context, String value, child) {
-            return Calendar();
-          },
-        ),
+        child: Calendar(),
       ),
     );
   }
@@ -43,11 +43,6 @@ class Calendar extends StatelessWidget {
         textAlign: TextAlign.center,
       ),
       dataSource: events.manager,
-      // appointmentBuilder: (context, calendarAppointmentDetails) {
-      //   return Container(
-      //     color: Colors.red,
-      //   );
-      // },
     );
   }
 }

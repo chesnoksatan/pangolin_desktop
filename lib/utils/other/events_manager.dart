@@ -21,6 +21,10 @@ class EventsManager extends CalendarDataSource {
       appointments?.addAll(events);
     }
   }
+
+  void addEvent(Event event) {
+    appointments?.add(event);
+  }
 }
 
 class Event extends Appointment {
@@ -33,6 +37,7 @@ class Event extends Appointment {
     super.startTimeZone,
     super.endTimeZone,
     super.recurrenceRule,
+    super.location,
     super.isAllDay = false,
     super.notes,
     super.resourceIds,

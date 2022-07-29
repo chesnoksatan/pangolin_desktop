@@ -21,6 +21,7 @@ import 'package:pangolin/components/overlays/quick_settings/pages/qs_account_pag
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_calendar_page.dart';
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_language_page.dart';
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_network_page.dart';
+import 'package:pangolin/components/overlays/quick_settings/pages/qs_new_event_page.dart';
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_theme_page.dart';
 import 'package:pangolin/components/overlays/quick_settings/widgets/qs_shortcut_button.dart';
 import 'package:pangolin/components/overlays/quick_settings/widgets/qs_slider.dart';
@@ -130,6 +131,7 @@ class _QuickSettingsOverlayState extends State<QuickSettingsOverlay>
                     "/pages/theme": (context) => const QsThemePage(),
                     "/pages/language": (context) => const QsLanguagePage(),
                     "/pages/calendar": (context) => const QsCalendarPage(),
+                    "/pages/new_event": (context) => const QsNewEventPage(),
                   },
                   theme: Theme.of(context)
                       .copyWith(scaffoldBackgroundColor: Colors.transparent),
@@ -339,6 +341,8 @@ class QsMain extends StatelessWidget {
                 QsShortcutButton(
                   title: strings.quicksettingsOverlay.shortcutsNewEvent,
                   icon: Icons.calendar_today_rounded,
+                  onPressed: () =>
+                      Navigator.pushNamed(context, "/pages/new_event"),
                 ),
                 QsShortcutButton(
                   title: strings.quicksettingsOverlay.shortcutsAlphaBuild,
