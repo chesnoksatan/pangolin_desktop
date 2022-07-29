@@ -43,6 +43,8 @@ import 'package:pangolin/widgets/service_builder.dart';
 import 'package:provider/provider.dart';
 import 'package:yatl_flutter/yatl_flutter.dart';
 
+import 'utils/other/events_manager.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -131,6 +133,9 @@ Future<void> main() async {
               ),
               ChangeNotifierProvider<SearchProvider>.value(
                 value: SearchProvider(),
+              ),
+              ChangeNotifierProvider<EventsProvider>.value(
+                value: EventsProvider(),
               ),
             ],
             child: child,

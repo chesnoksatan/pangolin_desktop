@@ -1,7 +1,8 @@
-import 'package:intl/intl.dart';
 import 'package:pangolin/components/overlays/quick_settings/widgets/qs_titlebar.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
 import 'package:pangolin/utils/other/date_time_manager.dart';
+import 'package:pangolin/utils/other/events_manager.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class QsCalendarPage extends StatelessWidget {
@@ -30,6 +31,7 @@ class Calendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final EventsProvider events = EventsProvider.of(context);
     return SfCalendar(
       view: CalendarView.month,
       headerDateFormat: "EE, MMMM d, yyyy",
@@ -40,6 +42,12 @@ class Calendar extends StatelessWidget {
       headerStyle: const CalendarHeaderStyle(
         textAlign: TextAlign.center,
       ),
+      dataSource: events.manager,
+      // appointmentBuilder: (context, calendarAppointmentDetails) {
+      //   return Container(
+      //     color: Colors.red,
+      //   );
+      // },
     );
   }
 }
