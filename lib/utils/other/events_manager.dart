@@ -24,6 +24,7 @@ class EventsManager extends CalendarDataSource {
 
   void addEvent(Event event) {
     appointments?.add(event);
+    notifyListeners(CalendarDataSourceAction.add, [event]);
   }
 }
 

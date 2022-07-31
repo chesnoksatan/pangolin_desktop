@@ -1,3 +1,4 @@
+import 'package:pangolin/components/overlays/quick_settings/pages/qs_event/color_picker.dart';
 import 'package:pangolin/components/overlays/quick_settings/widgets/qs_titlebar.dart';
 import 'package:pangolin/utils/data/common_data.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
@@ -16,6 +17,7 @@ class _QsNewEventPageState extends State<QsNewEventPage> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController notesController = TextEditingController();
+  final ColorPickerController colorPickerController = ColorPickerController();
 
   bool isAllDay = false;
 
@@ -24,6 +26,7 @@ class _QsNewEventPageState extends State<QsNewEventPage> {
     titleController.dispose();
     locationController.dispose();
     notesController.dispose();
+    colorPickerController.dispose();
     super.dispose();
   }
 
@@ -35,6 +38,7 @@ class _QsNewEventPageState extends State<QsNewEventPage> {
       endTime: DateTime.now().add(const Duration(hours: 2)),
       location: locationController.text,
       notes: notesController.text,
+      color: colorPickerController.color,
     );
 
     events.manager.addEvent(event);
@@ -54,53 +58,54 @@ class _QsNewEventPageState extends State<QsNewEventPage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _TextField(
-                    controller: titleController,
-                    hint: "Event Title",
+        padding: const EdgeInsets.only(top: 8.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _TextField(
+                controller: titleController,
+                hint: "Event Title",
+              ),
+              const SizedBox(height: 8.0),
+              _TextField(
+                controller: locationController,
+                hint: "Location",
+              ),
+              const SizedBox(height: 8.0),
+              ColorPicker(colorPickerController),
+              Row(
+                children: [
+                  Checkbox(
+                    value: isAllDay,
+                    onChanged: (value) => setState(() {
+                      if (value != null) {
+                        isAllDay = value;
+                      }
+                    }),
                   ),
-                ),
-                const SizedBox(width: 8.0),
-                const _PickColor(),
-              ],
-            ),
-            const SizedBox(height: 8.0),
-            _TextField(
-              controller: locationController,
-              hint: "Location",
-            ),
-            Row(
-              children: [
-                Checkbox(
-                  value: isAllDay,
-                  onChanged: (value) {},
-                ),
-                const Text("All day"),
-              ],
-            ),
-            const _TextField(
-              hint: "Start",
-            ),
-            const SizedBox(height: 8.0),
-            const _TextField(
-              hint: "End",
-            ),
-            const SizedBox(height: 8.0),
-            const _TextField(
-              hint: "Subject",
-            ),
-            const SizedBox(height: 8.0),
-            _TextField(
-              controller: notesController,
-              hint: "Note",
-              maxLines: 2,
-            ),
-          ],
+                  const Text("All day"),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+              const _TextField(
+                hint: "Start",
+              ),
+              const SizedBox(height: 8.0),
+              const _TextField(
+                hint: "End",
+              ),
+              const SizedBox(height: 8.0),
+              const _TextField(
+                hint: "Subject",
+              ),
+              const SizedBox(height: 8.0),
+              _TextField(
+                controller: notesController,
+                hint: "Note",
+                maxLines: 2,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -135,41 +140,6 @@ class _TextField extends StatelessWidget {
             hintText: hint,
             border: InputBorder.none,
             focusedBorder: InputBorder.none,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// TODO: implement DropDown
-class _PickColor extends StatelessWidget {
-  const _PickColor({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BoxContainer(
-      borderRadius:
-          CommonData.of(context).borderRadius(BorderRadiusType.medium),
-      width: 48,
-      height: 48,
-      child: Material(
-        type: MaterialType.transparency,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () {},
-          child: Center(
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary,
-                borderRadius:
-                    CommonData.of(context).borderRadius(BorderRadiusType.round),
-              ),
-            ),
           ),
         ),
       ),
