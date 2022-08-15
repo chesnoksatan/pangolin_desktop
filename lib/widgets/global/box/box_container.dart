@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:flutter/material.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
 import 'package:pangolin/widgets/global/acrylic/acrylic.dart';
 
 class BoxSurface extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
-  final BorderRadius borderRadius;
+  final OutlinedBorder shape;
   final Widget? child;
   final double? width;
   final double? height;
@@ -28,16 +29,16 @@ class BoxSurface extends StatelessWidget {
   final bool dropShadow;
 
   const BoxSurface({
-    Key? key,
+    super.key,
     this.child,
-    this.borderRadius = BorderRadius.zero,
+    this.shape = const RoundedRectangleBorder(),
     this.padding,
     this.margin,
     this.width,
     this.height,
     this.outline = false,
     this.dropShadow = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +48,7 @@ class BoxSurface extends StatelessWidget {
       padding: padding,
       margin: margin,
       decoration: ShapeDecoration(
-        shape: RoundedRectangleBorder(
-          // Set border radius of the surface area
-          borderRadius: borderRadius,
-        ),
+        shape: shape,
         shadows: dropShadow
             ? [
                 BoxShadow(
@@ -64,9 +62,7 @@ class BoxSurface extends StatelessWidget {
       ),
       foregroundDecoration: ShapeDecoration(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          // Set border radius of the surface area
-          borderRadius: borderRadius,
+        shape: shape.copyWith(
           // Create outline around the surface
           side: outline
               ? BorderSide(
@@ -76,12 +72,10 @@ class BoxSurface extends StatelessWidget {
               : BorderSide.none,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: borderRadius,
-        child: AcrylicLayer(
-          isBackground: true,
-          child: child ?? Container(),
-        ),
+      clipBehavior: Clip.antiAlias,
+      child: AcrylicLayer(
+        isBackground: true,
+        child: child ?? Container(),
       ),
     );
   }
@@ -90,7 +84,7 @@ class BoxSurface extends StatelessWidget {
 class BoxContainer extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
-  final BorderRadius borderRadius;
+  final OutlinedBorder shape;
   final Widget? child;
   final double? width;
   final double? height;
@@ -98,34 +92,32 @@ class BoxContainer extends StatelessWidget {
   final double opacity;
 
   const BoxContainer({
-    Key? key,
+    super.key,
     this.child,
-    this.borderRadius = BorderRadius.zero,
+    this.shape = const RoundedRectangleBorder(),
     this.padding,
     this.margin,
     this.width,
     this.height,
     this.outline = false,
     this.opacity = 0.5,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final bool _darkMode = Theme.of(context).darkMode;
+    final bool darkMode = Theme.of(context).darkMode;
     return Container(
       width: width,
       height: height,
       padding: padding,
       margin: margin,
-      foregroundDecoration: ShapeDecoration(
+      decoration: ShapeDecoration(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          // Set border radius of the surface area
-          borderRadius: borderRadius,
+        shape: shape.copyWith(
           // Create outline around the surface
           side: outline
               ? BorderSide(
-                  color: _darkMode
+                  color: darkMode
                       ? Colors.white.withOpacity(0.1)
                       : Colors.black.withOpacity(0.2),
                   width: 2,
@@ -133,14 +125,12 @@ class BoxContainer extends StatelessWidget {
               : BorderSide.none,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: borderRadius,
-        child: AcrylicLayer(
-          opacity: opacity,
-          enableBlur: false,
-          enableNoise: false,
-          child: child ?? Container(),
-        ),
+      clipBehavior: Clip.antiAlias,
+      child: AcrylicLayer(
+        opacity: opacity,
+        enableBlur: false,
+        enableNoise: false,
+        child: child ?? Container(),
       ),
     );
   }

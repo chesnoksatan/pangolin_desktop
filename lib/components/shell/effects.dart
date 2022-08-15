@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin/components/shell/desktop.dart';
-import 'package:pangolin/services/preferences.dart';
+import 'package:pangolin/utils/data/constants.dart';
 import 'package:pangolin/utils/wm/layout.dart';
 import 'package:pangolin/widgets/global/box/box_container.dart';
 import 'package:provider/provider.dart';
@@ -140,15 +140,10 @@ class EffectsLayerState extends State<EffectsLayer>
                 rect: _rectTween.evaluate(_curvedAnim) ?? Rect.zero,
                 child: FadeTransition(
                   opacity: _opacityController,
-                  child: BoxSurface(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(
-                        PreferencesService.current.get("windowBorderRadius") ??
-                            12.0,
-                      ),
-                    ),
+                  child: const BoxSurface(
+                    shape: Constants.mediumShape,
                     dropShadow: true,
-                    child: const SizedBox.expand(),
+                    child: SizedBox.expand(),
                   ),
                 ),
               ),

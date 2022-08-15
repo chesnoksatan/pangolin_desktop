@@ -14,29 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:flutter/material.dart';
 import 'package:pangolin/components/overlays/search/widgets/search_tile.dart';
 import 'package:pangolin/components/overlays/search/widgets/searchbar.dart';
 import 'package:pangolin/components/shell/shell.dart';
+import 'package:pangolin/services/customization.dart';
 import 'package:pangolin/services/search.dart';
-import 'package:pangolin/utils/data/common_data.dart';
+import 'package:pangolin/utils/data/constants.dart';
 import 'package:pangolin/utils/data/globals.dart';
 import 'package:pangolin/utils/data/models/application.dart';
-import 'package:pangolin/utils/extensions/extensions.dart';
 import 'package:pangolin/utils/providers/locale_provider.dart';
-import 'package:pangolin/utils/providers/search_provider.dart';
 import 'package:pangolin/widgets/global/box/box_container.dart';
+import 'package:pangolin/widgets/services.dart';
 
 class SearchOverlay extends ShellOverlay {
   static const String overlayId = "search";
 
-  SearchOverlay({Key? key}) : super(key: key, id: overlayId);
+  SearchOverlay({super.key}) : super(id: overlayId);
 
   @override
   _SearchOverlayState createState() => _SearchOverlayState();
 }
 
 class _SearchOverlayState extends State<SearchOverlay>
-    with SingleTickerProviderStateMixin, ShellOverlayState {
+    with
+        SingleTickerProviderStateMixin,
+        ShellOverlayState,
+        StateServiceListener<CustomizationService, SearchOverlay> {
   late AnimationController ac;
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
@@ -47,7 +51,7 @@ class _SearchOverlayState extends State<SearchOverlay>
     super.initState();
     ac = AnimationController(
       vsync: this,
-      duration: CommonData.of(context).animationDuration(),
+      duration: Constants.animationDuration,
     );
     ac.forward();
   }
@@ -72,12 +76,11 @@ class _SearchOverlayState extends State<SearchOverlay>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final Animation<double> _animation = CurvedAnimation(
+  Widget buildChild(BuildContext context, CustomizationService service) {
+    final Animation<double> animation = CurvedAnimation(
       parent: ac,
-      curve: CommonData.of(context).animationCurve(),
+      curve: Constants.animationCurve,
     );
-    final _searchProvider = SearchProvider.of(context);
     _focusNode.requestFocus();
 
     if (!controller.showing) return const SizedBox();
@@ -87,18 +90,17 @@ class _SearchOverlayState extends State<SearchOverlay>
       left: horizontalPadding(context, 600),
       right: horizontalPadding(context, 600),
       child: AnimatedBuilder(
-        animation: _animation,
+        animation: animation,
         builder: (context, child) => FadeTransition(
-          opacity: _animation,
+          opacity: animation,
           child: ScaleTransition(
-            scale: _animation,
+            scale: animation,
             alignment: FractionalOffset.bottomCenter,
             child: BoxSurface(
               dropShadow: true,
-              borderRadius:
-                  CommonData.of(context).borderRadius(BorderRadiusType.big),
               width: 500,
               height: 324,
+              shape: Constants.bigShape,
               child: Column(
                 children: [
                   Container(
@@ -107,8 +109,6 @@ class _SearchOverlayState extends State<SearchOverlay>
                     height: 48 + 10,
                     child: Searchbar(
                       color: Theme.of(context).backgroundColor.withOpacity(0.2),
-                      borderRadius: CommonData.of(context)
-                          .borderRadius(BorderRadiusType.medium),
                       focusNode: _focusNode,
                       controller: _controller,
                       hint: strings.searchOverlay.hint,
@@ -124,7 +124,7 @@ class _SearchOverlayState extends State<SearchOverlay>
                     ),
                   ),
 
-                  /// `Applicotins builder`
+                  /// `Applications builder`
 
                   Material(
                     type: MaterialType.transparency,
@@ -141,10 +141,9 @@ class _SearchOverlayState extends State<SearchOverlay>
                                   ),
                                   child: Text(
                                     strings.searchOverlay.results,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w600,
-                                      color: CommonData.of(context).textColor(),
                                     ),
                                   ),
                                 ),
@@ -175,10 +174,9 @@ class _SearchOverlayState extends State<SearchOverlay>
                                   ),
                                   child: Text(
                                     strings.searchOverlay.recent,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w600,
-                                      color: CommonData.of(context).textColor(),
                                     ),
                                   ),
                                 ),
@@ -189,11 +187,10 @@ class _SearchOverlayState extends State<SearchOverlay>
                                   ),
                                   shrinkWrap: true,
                                   reverse: true,
-                                  itemCount: _searchProvider
-                                      .recentSearchResults.length,
+                                  itemCount: service.recentSearchResults.length,
                                   physics: const BouncingScrollPhysics(),
                                   itemBuilder: (_, index) => SearchTile(
-                                    _searchProvider.recentSearchResults[index],
+                                    service.recentSearchResults[index],
                                   ),
                                 ),
                               ],

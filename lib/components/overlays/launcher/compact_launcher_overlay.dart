@@ -16,14 +16,14 @@ limitations under the License.
 
 import 'dart:async';
 
-import 'package:pangolin/components/overlays/launcher/widgets/app_launcher_tile.dart';
+import 'package:flutter/material.dart';
+import 'package:pangolin/components/overlays/launcher/app_launcher.dart';
 import 'package:pangolin/components/shell/shell.dart';
 import 'package:pangolin/services/application.dart';
 import 'package:pangolin/utils/action_manager/action_manager.dart';
-import 'package:pangolin/utils/data/common_data.dart';
+import 'package:pangolin/utils/data/constants.dart';
 import 'package:pangolin/utils/data/globals.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
-import 'package:pangolin/utils/providers/customization_provider.dart';
 import 'package:pangolin/widgets/global/box/box_container.dart';
 import 'package:pangolin/widgets/global/quick_button.dart';
 import 'package:xdg_desktop/xdg_desktop.dart';
@@ -32,7 +32,7 @@ import 'package:yatl_flutter/yatl_flutter.dart';
 class CompactLauncherOverlay extends ShellOverlay {
   static const String overlayId = 'compactlauncher';
 
-  CompactLauncherOverlay({Key? key}) : super(key: key, id: overlayId);
+  CompactLauncherOverlay({super.key}) : super(id: overlayId);
 
   @override
   _CompactLauncherOverlayState createState() => _CompactLauncherOverlayState();
@@ -40,16 +40,10 @@ class CompactLauncherOverlay extends ShellOverlay {
 
 class _CompactLauncherOverlayState extends State<CompactLauncherOverlay>
     with SingleTickerProviderStateMixin, ShellOverlayState {
-  late AnimationController ac;
-
-  @override
-  void initState() {
-    super.initState();
-    ac = AnimationController(
-      vsync: this,
-      duration: CommonData.of(context).animationDuration(),
-    );
-  }
+  late final AnimationController ac = AnimationController(
+    vsync: this,
+    duration: Constants.animationDuration,
+  );
 
   @override
   void dispose() {
@@ -71,41 +65,25 @@ class _CompactLauncherOverlayState extends State<CompactLauncherOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final _customizationProvider = CustomizationProvider.of(context);
-    final Animation<double> _animation = CurvedAnimation(
+    final Animation<double> animation = CurvedAnimation(
       parent: ac,
-      curve: CommonData.of(context).animationCurve(),
+      curve: Constants.animationCurve,
     );
 
     if (!controller.showing) return const SizedBox();
 
     return Positioned(
-      bottom: _customizationProvider.isTaskbarRight ||
-              _customizationProvider.isTaskbarLeft
-          ? 8
-          : !_customizationProvider.isTaskbarTop
-              ? 48 + 8
-              : null,
-      top: _customizationProvider.isTaskbarTop ? 48 + 8 : null,
-      left: _customizationProvider.isTaskbarRight
-          ? 48 + 8
-          : _customizationProvider.isTaskbarLeft
-              ? null
-              : 8,
-      right: _customizationProvider.isTaskbarLeft ? 48 + 8 : null,
+      bottom: 56,
+      left: 8,
       child: AnimatedBuilder(
-        animation: _animation,
+        animation: animation,
         builder: (context, chilld) => FadeTransition(
-          opacity: _animation,
+          opacity: animation,
           child: ScaleTransition(
-            scale: _animation,
-            alignment: FractionalOffset(
-              0.025,
-              !_customizationProvider.isTaskbarTop ? 1.0 : 0.0,
-            ),
+            scale: animation,
+            alignment: const FractionalOffset(0.025, 1.0),
             child: BoxSurface(
-              borderRadius:
-                  CommonData.of(context).borderRadius(BorderRadiusType.big),
+              shape: Constants.bigShape,
               height: 540,
               width: 474,
               dropShadow: true,
@@ -129,6 +107,7 @@ class _CompactLauncherOverlayState extends State<CompactLauncherOverlay>
 }
 
 class CompactLauncher extends StatelessWidget {
+  // ignore: use_super_parameters
   const CompactLauncher({Key? key}) : super(key: key);
 
   @override

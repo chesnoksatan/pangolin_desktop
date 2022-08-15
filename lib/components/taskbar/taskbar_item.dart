@@ -14,25 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:flutter/material.dart';
+import 'package:pangolin/services/customization.dart';
 import 'package:pangolin/utils/context_menus/context_menu.dart';
 import 'package:pangolin/utils/context_menus/context_menu_item.dart';
 import 'package:pangolin/utils/context_menus/core/context_menu_region.dart';
 import 'package:pangolin/utils/data/app_list.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
-import 'package:pangolin/utils/providers/customization_provider.dart';
 import 'package:pangolin/utils/wm/wm.dart';
 import 'package:pangolin/utils/wm/wm_api.dart';
+import 'package:pangolin/widgets/services.dart';
 
 class TaskbarItem extends StatefulWidget {
   final String packageName;
-  const TaskbarItem({required this.packageName, Key? key}) : super(key: key);
+
+  const TaskbarItem({required this.packageName, super.key});
 
   @override
   _TaskbarItemState createState() => _TaskbarItemState();
 }
 
 class _TaskbarItemState extends State<TaskbarItem>
-    with SingleTickerProviderStateMixin {
+    with
+        SingleTickerProviderStateMixin,
+        StateServiceListener<CustomizationService, TaskbarItem> {
   late AnimationController _ac;
   late Animation<double> _anim;
   bool _hovering = false;
@@ -57,9 +62,9 @@ class _TaskbarItemState extends State<TaskbarItem>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildChild(BuildContext context, CustomizationService service) {
     //Selected App
-    final _app = applications
+    final app = applications
         .firstWhere((element) => element.packageName == widget.packageName);
 
     //Running apps
@@ -97,7 +102,6 @@ class _TaskbarItemState extends State<TaskbarItem>
       _ac.animateBack(0);
     }
 
-    final _customizationProvider = CustomizationProvider.of(context);
     //Build Widget
     final Widget finalWidget = LayoutBuilder(
       builder: (context, constraints) => Padding(
@@ -112,18 +116,17 @@ class _TaskbarItemState extends State<TaskbarItem>
               items: [
                 ContextMenuItem(
                   icon: Icons.info_outline_rounded,
-                  title: _app.name,
+                  title: app.name,
                   onTap: () {},
                   shortcut: "",
                 ),
                 ContextMenuItem(
                   icon: Icons.push_pin_outlined,
-                  title: _customizationProvider.pinnedApps
-                          .contains(_app.packageName)
+                  title: service.pinnedApps.contains(app.packageName)
                       ? "Unpin from Taskbar"
                       : "Pin to Taskbar",
                   onTap: () {
-                    _customizationProvider.togglePinnedApp(_app.packageName);
+                    service.togglePinnedApp(app.packageName);
                   },
                   shortcut: "",
                 ),
@@ -168,51 +171,53 @@ class _TaskbarItemState extends State<TaskbarItem>
                   },
                   child: AnimatedBuilder(
                     animation: _anim,
-                    builder: (context, child) => Stack(
-                      children: [
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(6.0, 5, 6, 7),
-                            child: Image(
-                              image: appIsRunning
-                                  ? entry?.registry.info.icon ??
-                                      const NetworkImage("")
-                                  : AssetImage(
-                                      "assets/icons/${_app.iconName}.png",
-                                    ),
+                    builder: (context, child) {
+                      return Stack(
+                        children: [
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(6.0, 5, 6, 7),
+                              child: Image(
+                                image: appIsRunning
+                                    ? entry?.registry.info.icon ??
+                                        const NetworkImage("")
+                                    : AssetImage(
+                                        "assets/icons/${app.iconName}.png",
+                                      ),
+                              ),
                             ),
                           ),
-                        ),
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 150),
-                          curve: Curves.ease,
-                          bottom: 1,
-                          left: appIsRunning
-                              ? _hovering
-                                  ? showSelected
-                                      ? 4
-                                      : 8
-                                  : showSelected
-                                      ? 4
-                                      : constraints.maxHeight / 2 - 8
-                              : 50 / 2,
-                          right: appIsRunning
-                              ? _hovering
-                                  ? showSelected
-                                      ? 4
-                                      : 8
-                                  : showSelected
-                                      ? 4
-                                      : constraints.maxHeight / 2 - 8
-                              : 50 / 2,
-                          height: 3,
-                          child: Material(
-                            borderRadius: BorderRadius.circular(2),
-                            color: Theme.of(context).colorScheme.secondary,
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 150),
+                            curve: Curves.ease,
+                            bottom: 1,
+                            left: appIsRunning
+                                ? _hovering
+                                    ? showSelected
+                                        ? 4
+                                        : 8
+                                    : showSelected
+                                        ? 4
+                                        : constraints.maxHeight / 2 - 8
+                                : 50 / 2,
+                            right: appIsRunning
+                                ? _hovering
+                                    ? showSelected
+                                        ? 4
+                                        : 8
+                                    : showSelected
+                                        ? 4
+                                        : constraints.maxHeight / 2 - 8
+                                : 50 / 2,
+                            height: 3,
+                            child: Material(
+                              borderRadius: BorderRadius.circular(2),
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -221,7 +226,7 @@ class _TaskbarItemState extends State<TaskbarItem>
         ),
       ),
     );
-    if (!_app.canBeOpened) {
+    if (!app.canBeOpened) {
       return IgnorePointer(
         child: Opacity(
           opacity: 0.4,

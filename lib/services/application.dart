@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:pangolin/services/langpacks.dart';
 import 'package:pangolin/services/service.dart';
 import 'package:pangolin/utils/data/app_list.dart';
 import 'package:pangolin/utils/data/models/application.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
-import 'package:pangolin/utils/other/log.dart';
 import 'package:path/path.dart' as p;
 import 'package:xdg_desktop/xdg_desktop.dart';
 import 'package:xdg_directories/xdg_directories.dart' as xdg;
 
-abstract class ApplicationService extends Service<ApplicationService>
-    with ChangeNotifier, LoggerProvider {
+abstract class ApplicationService
+    extends ListenableService<ApplicationService> {
   ApplicationService();
 
   static ApplicationService get current {
@@ -156,7 +156,7 @@ class _BuiltInApplicationService extends ApplicationService {
       final DesktopEntry entry = DesktopEntry(
         type: DesktopEntryType.application,
         name: LocalizedString(app.name),
-        icon: LocalizedString("asset://assets/icons/${app.iconName}.png"),
+        icon: LocalizedString("image:dahlia#icons/${app.iconName}.png"),
         exec: exec,
         categories: app.category != null ? [app.category!.name] : null,
       );
@@ -171,9 +171,7 @@ class _BuiltInApplicationService extends ApplicationService {
   List<DesktopEntry> listApplications({bool sort = false}) => entries;
 
   @override
-  void startApp(DesktopEntry app) {
-    final Widget? content = builders[app];
-  }
+  void startApp(DesktopEntry app) {}
 
   @override
   void stop() {

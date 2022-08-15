@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:pangolin/utils/other/computation_pool.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pangolin/utils/other/log.dart';
 
-abstract class Service<T extends Service<T>> {
+abstract class Service<T extends Service<T>> with LoggerProvider {
   bool _running = false;
   bool get running => _running;
 
@@ -15,6 +15,9 @@ abstract class Service<T extends Service<T>> {
     return "$T, ${running ? "running" : "not running"}";
   }
 }
+
+abstract class ListenableService<T extends ListenableService<T>>
+    extends Service<T> with ChangeNotifier {}
 
 class FailedService extends Service<FailedService> {
   final Type service;
@@ -45,8 +48,6 @@ class ServiceManager with LoggerProvider {
   final Map<Type, _ServiceBuilderWithFallback> _awaitingForStartup = {};
   static final ServiceManager _instance = ServiceManager._();
   final Map<Type, Service<dynamic>> _registeredServices = {};
-  final ComputationPool<Type, Service<dynamic>> _startupPool =
-      ComputationPool();
 
   ServiceManager._();
 
@@ -76,23 +77,30 @@ class ServiceManager with LoggerProvider {
   }
 
   Future<void> _waitForService<T extends Service<T>>() {
-    return _startupPool.waitFor(T);
+    return Future.value();
+    /* final Completer<void>? completer = _completionTracker[T];
+
+    if (completer == null) {
+      throw Exception(
+        "Can't wait for Service $T because it was not registered",
+      );
+    }
+
+    return _completionTracker[T]!.future; */
   }
 
   Future<void> _startServices() async {
-    _awaitingForStartup.forEach((type, builder) {
-      _startupPool.registerComputation(type);
-      _startWithFallback(type, builder.builder, builder.fallback);
-    });
-
-    await _startupPool.waitForResults((type, service) {
-      _awaitingForStartup.remove(type);
-      _registeredServices[type] = service;
-      logger.info("Loaded service $type");
-    });
-
-    _awaitingForStartup.clear();
-    _startupPool.dispose();
+    for (final MapEntry<Type, _ServiceBuilderWithFallback> awaiting
+        in _awaitingForStartup.entries) {
+      logger.info("Starting service ${awaiting.key}");
+      final Service<dynamic> service = await _startWithFallback(
+        awaiting.key,
+        awaiting.value.builder,
+        awaiting.value.fallback,
+      );
+      logger.info("Started service ${awaiting.key}");
+      _registeredServices[awaiting.key] = service;
+    }
   }
 
   Future<void> _stopServices() async {
@@ -104,18 +112,18 @@ class ServiceManager with LoggerProvider {
     _registeredServices.clear();
   }
 
-  Future<void> _startWithFallback(
-    final Type type,
-    final ServiceBuilder<Service<dynamic>> builder,
-    final Service<dynamic>? fallback,
+  Future<Service<dynamic>> _startWithFallback(
+    Type type,
+    ServiceBuilder<Service<dynamic>> builder,
+    Service<dynamic>? fallback,
   ) async {
     try {
       final Service<dynamic> service = await builder();
       await service.start();
       service._running = true;
 
-      _startupPool.completeComputation(type, service);
-      return;
+      //_startupPool.completeComputation(type, service);
+      return service;
     } catch (exception, stackTrace) {
       if (fallback == null) {
         logger.severe(
@@ -124,8 +132,8 @@ class ServiceManager with LoggerProvider {
           stackTrace,
         );
 
-        _startupPool.completeComputation(type, FailedService._(type));
-        return;
+        //_startupPool.completeComputation(type, FailedService._(type));
+        return FailedService._(type);
       }
 
       logger.warning(

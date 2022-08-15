@@ -14,20 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:flutter/material.dart';
 import 'package:pangolin/components/desktop/wallpaper.dart';
-import 'package:pangolin/components/desktop/welcome_screen.dart';
 import 'package:pangolin/components/overlays/account_overlay.dart';
 import 'package:pangolin/components/overlays/launcher/compact_launcher_overlay.dart';
 import 'package:pangolin/components/overlays/launcher/launcher_overlay.dart';
+import 'package:pangolin/components/overlays/notifications/overlay.dart';
 import 'package:pangolin/components/overlays/overview_overlay.dart';
 import 'package:pangolin/components/overlays/power_overlay.dart';
 import 'package:pangolin/components/overlays/quick_settings/quick_settings_overlay.dart';
 import 'package:pangolin/components/overlays/search/search_overlay.dart';
+import 'package:pangolin/components/overlays/welcome_overlay.dart';
 import 'package:pangolin/components/shell/shell.dart';
-import 'package:pangolin/services/preferences.dart';
+import 'package:pangolin/services/customization.dart';
 import 'package:pangolin/utils/data/app_list.dart';
-import 'package:pangolin/utils/extensions/extensions.dart';
-import 'package:pangolin/utils/providers/customization_provider.dart';
 import 'package:pangolin/utils/wm/layout.dart';
 import 'package:pangolin/utils/wm/wm.dart';
 
@@ -35,7 +35,7 @@ class Desktop extends StatefulWidget {
   static final WindowHierarchyController wmController =
       WindowHierarchyController();
 
-  const Desktop({Key? key}) : super(key: key);
+  const Desktop({super.key});
 
   @override
   _DesktopState createState() => _DesktopState();
@@ -72,22 +72,19 @@ class _DesktopState extends State<Desktop> {
               QuickSettingsOverlay(),
               PowerOverlay(),
               AccountOverlay(),
+              WelcomeOverlay(),
+              NotificationsOverlay(),
             ],
+            onShellShown: (shell) {
+              if (CustomizationService.current.showWelcomeScreen) {
+                shell.showOverlay("welcome");
+              }
+            },
           ),
         ),
       );
       // ignore: avoid_print
       print("Initilized Desktop Shell");
-
-      if (PreferencesService.current.get("initialStart")!) {
-        showDialog(
-          barrierColor: Colors.transparent,
-          context: context,
-          builder: (context) {
-            return const WelcomeScreen();
-          },
-        );
-      }
 
       //sort application list in alphabetical order
       applications.sort((a, b) => a.packageName.compareTo(b.packageName));
@@ -97,13 +94,7 @@ class _DesktopState extends State<Desktop> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final _customizationProvider = CustomizationProvider.of(context);
-    Desktop.wmController.wmInsets = EdgeInsets.only(
-      left: _customizationProvider.isTaskbarLeft ? 48 : 0,
-      top: _customizationProvider.isTaskbarTop ? 48 : 0,
-      right: _customizationProvider.isTaskbarRight ? 48 : 0,
-      bottom: _customizationProvider.isTaskbarBottom ? 48 : 0,
-    );
+    Desktop.wmController.wmInsets = const EdgeInsets.only(bottom: 48);
   }
 
   @override

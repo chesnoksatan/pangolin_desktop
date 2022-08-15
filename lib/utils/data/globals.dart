@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -78,21 +79,21 @@ double verticalPadding(BuildContext context, double size) =>
 List<String> timeZones = [];
 
 List<String> wallpapers = [
-  "assets/images/wallpapers/dahliaOS_white_logo_pattern_wallpaper.png",
-  "assets/images/wallpapers/dahliaOS_white_wallpaper.png",
-  "assets/images/wallpapers/Gradient_logo_wallpaper.png",
-  "assets/images/wallpapers/Three_Bubbles.png",
-  "assets/images/wallpapers/Bubbles_wallpaper.png",
-  "assets/images/wallpapers/Mountains_wallpaper.png",
-  "assets/images/wallpapers/mountain.jpg",
-  "assets/images/wallpapers/forest.jpg",
-  "assets/images/wallpapers/modern.png",
-  "assets/images/wallpapers/modern_dark.png",
-  "assets/images/wallpapers/wood.jpg",
-  "assets/images/wallpapers/beach.jpg"
+  "images/wallpapers/dahliaOS_white_logo_pattern_wallpaper.png",
+  "images/wallpapers/dahliaOS_white_wallpaper.png",
+  "images/wallpapers/Gradient_logo_wallpaper.png",
+  "images/wallpapers/Three_Bubbles.png",
+  "images/wallpapers/Bubbles_wallpaper.png",
+  "images/wallpapers/Mountains_wallpaper.png",
+  "images/wallpapers/mountain.jpg",
+  "images/wallpapers/forest.jpg",
+  "images/wallpapers/modern.png",
+  "images/wallpapers/modern_dark.png",
+  "images/wallpapers/wood.jpg",
+  "images/wallpapers/beach.jpg",
 ];
 
-Future<BingWallpaper> getBingWallpaper() async {
+Future<BingImageOfTheDay?> getBingWallpaper() async {
   final response = await get(
     Uri.parse(
       'http://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US',
@@ -102,8 +103,9 @@ Future<BingWallpaper> getBingWallpaper() async {
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE, HEAD",
     },
   );
+
   if (response.statusCode == 200) {
-    return bingWallpaperFromJson(response.body);
+    return bingParser.validate(jsonDecode(response.body));
   } else {
     throw Exception(
       "Failed to fetch data from the Bing's Wallpaper of the Day API.",

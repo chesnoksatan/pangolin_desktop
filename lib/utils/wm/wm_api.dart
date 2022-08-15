@@ -15,11 +15,11 @@ limitations under the License.
 */
 
 import 'package:flutter/material.dart';
+import 'package:pangolin/components/shell/shell.dart';
 import 'package:pangolin/components/window/window_surface.dart';
 import 'package:pangolin/components/window/window_toolbar.dart';
-import 'package:pangolin/services/preferences.dart';
 import 'package:pangolin/utils/data/app_list.dart';
-import 'package:pangolin/utils/providers/misc_provider.dart';
+import 'package:pangolin/utils/data/constants.dart';
 import 'package:pangolin/utils/wm/wm.dart';
 
 class WmAPI {
@@ -29,32 +29,25 @@ class WmAPI {
   late final WindowHierarchyController _windowHierarchy =
       WindowHierarchy.of(context, listen: false);
 
-  late final MiscProvider _miscProvider =
-      MiscProvider.of(context, listen: false);
+  late final ShellState _shell = Shell.of(context, listen: false);
 
-  static WindowEntry windowEntry = WindowEntry(
-    features: const [
+  static const WindowEntry windowEntry = WindowEntry(
+    features: [
       ResizeWindowFeature(),
       SurfaceWindowFeature(),
       FocusableWindowFeature(),
       ToolbarWindowFeature(),
     ],
-    layoutInfo: const FreeformLayoutInfo(
+    layoutInfo: FreeformLayoutInfo(
       position: Offset(32, 32),
       size: Size(1280, 720),
     ),
     properties: {
-      ResizeWindowFeature.minSize: const Size(480, 360),
+      ResizeWindowFeature.minSize: Size(480, 360),
       SurfaceWindowFeature.elevation: 4.0,
-      SurfaceWindowFeature.shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(
-            PreferencesService.current.get("windowBorderRadius") ?? 12.0,
-          ),
-        ),
-      ),
-      SurfaceWindowFeature.background: const PangolinWindowSurface(),
-      ToolbarWindowFeature.widget: const PangolinWindowToolbar(
+      SurfaceWindowFeature.shape: Constants.mediumShape,
+      SurfaceWindowFeature.background: PangolinWindowSurface(),
+      ToolbarWindowFeature.widget: PangolinWindowToolbar(
         barColor: Colors.transparent,
         textColor: Colors.black,
       ),
@@ -76,7 +69,7 @@ class WmAPI {
       return;
       // throw 'The app couldn not be opened';
     }
-    final LiveWindowEntry _window = windowEntry.newInstance(
+    final LiveWindowEntry window = windowEntry.newInstance(
       content: application.app,
       overrideProperties: {
         WindowEntry.title: application.name,
@@ -99,14 +92,14 @@ class WmAPI {
       ),
     );
 
-    pushWindowEntry(_window);
+    pushWindowEntry(window);
   }
 
   void minimizeAll() {
-    _miscProvider.minimizedWindowsCache = [];
+    _shell.minimizedWindowsCache.clear();
     for (final LiveWindowEntry e in _windowHierarchy.entries) {
       if (e.layoutState.minimized) {
-        _miscProvider.minimizedWindowsCache.add(e.registry.info.id);
+        _shell.minimizedWindowsCache.add(e.registry.info.id);
       } else {
         e.layoutState.minimized = true;
       }
@@ -116,7 +109,7 @@ class WmAPI {
   void undoMinimizeAll() {
     for (final LiveWindowEntry e in _windowHierarchy.entries) {
       e.layoutState.minimized =
-          _miscProvider.minimizedWindowsCache.contains(e.registry.info.id);
+          _shell.minimizedWindowsCache.contains(e.registry.info.id);
     }
   }
 }

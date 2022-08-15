@@ -14,33 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:flutter/material.dart';
 import 'package:pangolin/components/overlays/keyboard_overlay.dart';
 import 'package:pangolin/components/overlays/quick_settings/quick_settings_overlay.dart';
 import 'package:pangolin/components/shell/shell.dart';
-import 'package:pangolin/utils/data/common_data.dart';
-import 'package:pangolin/utils/extensions/extensions.dart';
-import 'package:pangolin/utils/providers/customization_provider.dart';
+import 'package:pangolin/utils/data/constants.dart';
 
 class KeyboardButton extends StatelessWidget {
-  const KeyboardButton({Key? key}) : super(key: key);
+  const KeyboardButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final _customizationProvider = CustomizationProvider.of(context);
-    final _shell = Shell.of(context);
+    final shell = Shell.of(context);
 
     return SizedBox(
       //width: 96,
-      width: _customizationProvider.isTaskbarHorizontal ? null : 48,
-      height: _customizationProvider.isTaskbarHorizontal ? 48 : null,
+      width: 48,
       child: Padding(
         padding: const EdgeInsets.all(4.0),
-        child: ClipRRect(
-          borderRadius:
-              CommonData.of(context).borderRadius(BorderRadiusType.small),
+        child: Material(
+          type: MaterialType.transparency,
+          shape: Constants.smallShape,
           child: ValueListenableBuilder<bool>(
             valueListenable:
-                _shell.getShowingNotifier(QuickSettingsOverlay.overlayId),
+                shell.getShowingNotifier(QuickSettingsOverlay.overlayId),
             builder: (context, showing, child) {
               return Material(
                 color: showing
@@ -57,15 +54,10 @@ class KeyboardButton extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 child: Center(
-                  child: _customizationProvider.isTaskbarHorizontal
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [Icon(Icons.keyboard_outlined)],
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [Icon(Icons.keyboard_outlined)],
-                        ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [Icon(Icons.keyboard_outlined)],
+                  ),
                 ),
               ),
             ),

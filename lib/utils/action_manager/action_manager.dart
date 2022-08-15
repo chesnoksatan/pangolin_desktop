@@ -18,14 +18,14 @@ limitations under the License.
 
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:pangolin/components/overlays/account_overlay.dart';
 import 'package:pangolin/components/overlays/launcher/compact_launcher_overlay.dart';
 import 'package:pangolin/components/overlays/launcher/launcher_overlay.dart';
 import 'package:pangolin/components/overlays/power_overlay.dart';
 import 'package:pangolin/components/shell/shell.dart';
-import 'package:pangolin/utils/data/common_data.dart';
-import 'package:pangolin/utils/extensions/extensions.dart';
-import 'package:pangolin/utils/providers/misc_provider.dart';
+import 'package:pangolin/services/customization.dart';
+import 'package:pangolin/utils/data/constants.dart';
 import 'package:pangolin/utils/wm/wm_api.dart';
 
 class ActionManager {
@@ -34,7 +34,7 @@ class ActionManager {
   static Future<void> showPowerMenu(BuildContext context) async {
     final shell = Shell.of(context, listen: false);
     shell.dismissEverything();
-    await Future.delayed(CommonData.of(context).animationDuration());
+    await Future.delayed(Constants.animationDuration);
     shell.showOverlay(
       PowerOverlay.overlayId,
       dismissEverything: false,
@@ -44,7 +44,7 @@ class ActionManager {
   static Future<void> showAccountMenu(BuildContext context) async {
     final shell = Shell.of(context, listen: false);
     shell.dismissEverything();
-    await Future.delayed(CommonData.of(context).animationDuration());
+    await Future.delayed(Constants.animationDuration);
     shell.showOverlay(
       AccountOverlay.overlayId,
       dismissEverything: false,
@@ -53,12 +53,12 @@ class ActionManager {
 
   static Future<void> switchLauncher(BuildContext context) async {
     final shell = Shell.of(context, listen: false);
-    final MiscProvider _miscProvider = MiscProvider.of(context, listen: false);
+    final CustomizationService service = CustomizationService.current;
     shell.dismissEverything();
-    _miscProvider.compactLauncher = !_miscProvider.compactLauncher;
-    await Future.delayed(CommonData.of(context).animationDuration());
+    service.compactLauncher = !service.compactLauncher;
+    await Future.delayed(Constants.animationDuration);
     shell.showOverlay(
-      _miscProvider.compactLauncher
+      service.compactLauncher
           ? CompactLauncherOverlay.overlayId
           : LauncherOverlay.overlayId,
     );

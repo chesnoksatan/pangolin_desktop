@@ -14,23 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:flutter/material.dart';
 import 'package:pangolin/components/shell/shell.dart';
-import 'package:pangolin/utils/data/common_data.dart';
+import 'package:pangolin/utils/data/constants.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
 
 class TaskbarElement extends StatefulWidget {
-  const TaskbarElement({
-    Key? key,
-    required this.child,
-    this.overlayID,
-    this.size,
-    this.iconSize,
-  }) : super(key: key);
-
   final Widget child;
   final String? overlayID;
   final Size? size;
   final double? iconSize;
+
+  const TaskbarElement({
+    super.key,
+    required this.child,
+    this.overlayID,
+    this.size,
+    this.iconSize,
+  });
 
   @override
   _TaskbarElementState createState() => _TaskbarElementState();
@@ -40,18 +41,16 @@ class _TaskbarElementState extends State<TaskbarElement> {
   bool _hover = false;
   @override
   Widget build(BuildContext context) {
-    final _theme = Theme.of(context);
-    final _accentColor = _theme.colorScheme.secondary;
-    final _shell = Shell.of(context);
-    final _darkMode = _theme.brightness == Brightness.dark;
-    final _borderRadius =
-        CommonData.of(context).borderRadius(BorderRadiusType.small);
+    final theme = Theme.of(context);
+    final accentColor = theme.colorScheme.secondary;
+    final shell = Shell.of(context);
+    final darkMode = theme.brightness == Brightness.dark;
 
     return SizedBox.fromSize(
       size: widget.size ?? const Size(48, 48),
       child: GestureDetector(
         onTap: () => widget.overlayID != null
-            ? _shell.toggleOverlay(widget.overlayID!)
+            ? shell.toggleOverlay(widget.overlayID!)
             : {},
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
@@ -59,42 +58,45 @@ class _TaskbarElementState extends State<TaskbarElement> {
           onExit: (state) => setState(() => _hover = false),
           child: Padding(
             padding: const EdgeInsets.all(4.0),
-            child: ClipRRect(
-              borderRadius: _borderRadius,
+            child: Material(
+              type: MaterialType.transparency,
+              shape: Constants.smallShape,
+              clipBehavior: Clip.antiAlias,
               child: ValueListenableBuilder<bool>(
                 valueListenable: widget.overlayID != null
-                    ? _shell.getShowingNotifier(widget.overlayID!)
+                    ? shell.getShowingNotifier(widget.overlayID!)
                     : ValueNotifier(false),
                 builder: (context, showing, child) {
                   return IconTheme.merge(
                     data: IconThemeData(
                       color: showing
-                          ? _accentColor.computeLuminance() < 0.3
+                          ? accentColor.computeLuminance() < 0.3
                               ? const Color(0xffffffff)
                               : const Color(0xff000000)
-                          : _darkMode
+                          : darkMode
                               ? const Color(0xffffffff)
                               : const Color(0xff000000),
                       size: widget.iconSize ?? 20,
                     ),
                     child: Material(
-                      borderRadius: _borderRadius,
+                      shape: Constants.smallShape,
+                      clipBehavior: Clip.antiAlias,
                       color: _hover
                           ? context.theme.hoverColor
                           : Colors.transparent,
                       child: DefaultTextStyle(
                         style: TextStyle(
                           color: showing
-                              ? _accentColor.computeLuminance() < 0.3
+                              ? accentColor.computeLuminance() < 0.3
                                   ? const Color(0xffffffff)
                                   : const Color(0xff000000)
-                              : _darkMode
+                              : darkMode
                                   ? const Color(0xffffffff)
                                   : const Color(0xff000000),
                         ),
                         child: Material(
                           clipBehavior: Clip.antiAlias,
-                          color: showing ? _accentColor : Colors.transparent,
+                          color: showing ? accentColor : Colors.transparent,
                           child: child,
                         ),
                       ),

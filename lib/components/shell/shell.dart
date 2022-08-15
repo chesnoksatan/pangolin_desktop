@@ -18,31 +18,54 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pangolin/components/overlays/launcher/launcher_overlay.dart';
+import 'package:pangolin/components/overlays/notifications/queue.dart';
 import 'package:pangolin/components/taskbar/launcher.dart';
+import 'package:pangolin/components/taskbar/notifications.dart';
 import 'package:pangolin/components/taskbar/overview.dart';
 import 'package:pangolin/components/taskbar/quick_settings.dart';
 import 'package:pangolin/components/taskbar/search.dart';
 import 'package:pangolin/components/taskbar/show_desktop.dart';
 import 'package:pangolin/components/taskbar/taskbar.dart';
-import 'package:pangolin/services/preferences.dart';
+import 'package:pangolin/components/taskbar/tray_item.dart';
+import 'package:pangolin/services/dbus/status_item.dart';
+import 'package:pangolin/services/tray.dart';
 import 'package:pangolin/utils/wm/wm.dart';
 import 'package:pangolin/widgets/global/box/box_container.dart';
+import 'package:pangolin/widgets/services.dart';
 import 'package:provider/provider.dart';
+
+typedef ShellShownCallback = void Function(ShellState shell);
 
 class Shell extends StatefulWidget {
   final List<ShellOverlay> overlays;
+  final ShellShownCallback? onShellShown;
 
-  const Shell({required this.overlays, Key? key}) : super(key: key);
+  const Shell({
+    required this.overlays,
+    this.onShellShown,
+    super.key,
+  });
 
   @override
-  _ShellState createState() => _ShellState();
+  ShellState createState() => ShellState();
 
-  static _ShellState of(BuildContext context, {bool listen = true}) {
-    return Provider.of<_ShellState>(context, listen: listen);
+  static ShellState of(BuildContext context, {bool listen = true}) {
+    return Provider.of<ShellState>(context, listen: listen);
   }
 }
 
-class _ShellState extends State<Shell> {
+class ShellState extends State<Shell>
+    with StateServiceListener<TrayService, Shell> {
+  final List<String> minimizedWindowsCache = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onShellShown?.call(this);
+    });
+  }
+
   Future<void> showOverlay(
     String overlayId, {
     Map<String, dynamic> args = const {},
@@ -102,7 +125,7 @@ class _ShellState extends State<Shell> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildChild(BuildContext context, TrayService service) {
     return Provider.value(
       value: this,
       child: SizedBox.expand(
@@ -128,22 +151,24 @@ class _ShellState extends State<Shell> {
               ),
             ),
             Taskbar(
-              leading: [
-                const LauncherButton(),
-                if (PreferencesService.current.get<bool>('searchIcon')!)
-                  const SearchButton()
-                else
-                  const SizedBox(),
-                if (PreferencesService.current.get<bool>('overviewIcon')!)
-                  const OverviewButton()
-                else
-                  const SizedBox(),
+              leading: const [
+                LauncherButton(),
+                SearchButton(),
+                OverviewButton(),
               ],
-              trailing: const [
+              trailing: [
                 //TODO: here is the keyboard button
                 //KeyboardButton(),
-                QuickSettingsButton(),
-                ShowDesktopButton(),
+                ...service.items
+                    .where(
+                      (e) =>
+                          e.category !=
+                          StatusNotifierItemCategory.systemServices,
+                    )
+                    .map((e) => TrayItem(item: e)),
+                const QuickSettingsButton(),
+                const NotificationsButton(),
+                const ShowDesktopButton(),
               ],
             ),
             ...widget.overlays,
@@ -155,6 +180,12 @@ class _ShellState extends State<Shell> {
                 },
                 behavior: HitTestBehavior.translucent,
               ),
+            ),
+            Positioned(
+              width: 420,
+              right: WindowHierarchy.of(context).wmInsets.right + 8,
+              bottom: WindowHierarchy.of(context).wmInsets.bottom + 8,
+              child: const NotificationQueue(),
             ),
           ],
         ),
@@ -195,8 +226,8 @@ abstract class ShellOverlay extends StatefulWidget {
 
   ShellOverlay({
     required this.id,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ShellOverlayState createState();

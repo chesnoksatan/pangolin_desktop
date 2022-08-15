@@ -3,19 +3,17 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dbus/dbus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:gsettings/gsettings.dart';
 import 'package:pangolin/services/service.dart';
 import 'package:pangolin/utils/other/benchmark.dart';
-import 'package:pangolin/utils/other/log.dart';
-import 'package:pangolin/widgets/global/icon/cache.dart';
+import 'package:pangolin/widgets/global/resource/icon/cache.dart';
 import 'package:path/path.dart' as p;
 import 'package:xdg_desktop/xdg_desktop.dart';
 import 'package:xdg_directories/xdg_directories.dart' as xdg;
 
 typedef _IconCache = Map<String, _CachedIconSet>;
 
-abstract class IconService extends Service<IconService> with ChangeNotifier {
+abstract class IconService extends ListenableService<IconService> {
   IconService();
 
   static IconService get current {
@@ -31,9 +29,14 @@ abstract class IconService extends Service<IconService> with ChangeNotifier {
   factory IconService.fallback() = _StraightThroughIconServiceImpl;
 
   String? lookup(String name, {int? size, String? fallback});
+  Future<String?> lookupFromDirectory(
+    String directory,
+    String name, {
+    String? fallback,
+  });
 }
 
-class _LinuxIconService extends IconService with LoggerProvider {
+class _LinuxIconService extends IconService {
   static final RegExp extRegexp = RegExp(r"(\.png|\.svg(z)?|\.xpm)^");
   final GSettings settings = GSettings("org.gnome.desktop.interface");
 
@@ -83,6 +86,33 @@ class _LinuxIconService extends IconService with LoggerProvider {
       "Nothing found for $fixedName, took ${benchmark.duration.inMilliseconds}ms",
     );
     return null;
+  }
+
+  @override
+  Future<String?> lookupFromDirectory(
+    String directory,
+    String name, {
+    String? fallback,
+  }) async {
+    if (FileSystemEntity.typeSync(directory) !=
+        FileSystemEntityType.directory) {
+      return null;
+    }
+
+    final Directory dir = Directory(directory);
+    final List<FileSystemEntity> entities = await dir.list().toList();
+
+    final File? file = entities.firstWhereOrNull((e) {
+      if (e is! File) return false;
+
+      final String fileName = p.basenameWithoutExtension(e.path);
+
+      if (fileName != name) return false;
+
+      return true;
+    }) as File?;
+
+    return file?.path ?? (fallback != null ? lookup(fallback) : null);
   }
 
   @override
@@ -242,6 +272,12 @@ class _LinuxIconService extends IconService with LoggerProvider {
     }
   }
 
+  // Here we load the specified theme from the available theme folders and every children
+  // it possibly has (basically we build the inheritance tree and then we flatten it,
+  // removing duplicate entries and setting the proper priority).
+  // Before anything tho, we load the icons from pixmaps as they have the lowest priority.
+  // Icon loading works by reverse priority, lowest get written before. As we traverse the hierarchy
+  // tree from bottom to top, we override low priority entries with the ones that sit on top.
   Future<void> _loadThemes([String? name]) async {
     cache.clear();
     final String resolvedName = name ?? systemTheme ?? "hicolor";
@@ -270,7 +306,7 @@ class _LinuxIconService extends IconService with LoggerProvider {
         cache.addAll(themeCache);
         benchmark.end();
         logger.finest(
-          "Loaded theme $resolvedName, took ${benchmark.duration.inMilliseconds}ms",
+          "Loaded theme $resolvedName (default), took ${benchmark.duration.inMilliseconds}ms",
         );
         continue;
       }
@@ -334,8 +370,17 @@ class _LinuxIconService extends IconService with LoggerProvider {
 
     return _IconCache.fromIterables(
       iconCache.keys,
-      iconCache.values.map((e) => _CachedIconSet(e)),
+      iconCache.values.map((e) => _CachedIconSet(_sortCache(e))),
     );
+  }
+
+  Map<_CacheKey, String> _sortCache(Map<_CacheKey, String> orig) {
+    final List<MapEntry<_CacheKey, String>> entries = orig.entries.toList();
+    entries.sort(
+      (a, b) => b.key.nullSafeSize.compareTo(a.key.nullSafeSize),
+    );
+
+    return Map.fromEntries(entries);
   }
 
   List<String> _getInheritances(_IconFolder folder, IconTheme theme) {
@@ -397,6 +442,14 @@ class _StraightThroughIconServiceImpl extends IconService {
   String? lookup(String name, {int? size, String? fallback}) => name;
 
   @override
+  Future<String?> lookupFromDirectory(
+    String directory,
+    String name, {
+    String? fallback,
+  }) async =>
+      name;
+
+  @override
   FutureOr<void> start() {
     // noop
   }
@@ -422,7 +475,7 @@ class _CachedIconSet {
       return path;
     }
 
-    return null;
+    return icons.values.first;
   }
 
   bool _sizeMatches(int size, _CacheKey key) {
@@ -465,4 +518,8 @@ class _IconFolder {
   final List<IconTheme> themes;
 
   const _IconFolder(this.path, this.themes);
+}
+
+extension on _CacheKey {
+  int get nullSafeSize => size ?? 0;
 }
