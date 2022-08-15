@@ -1,10 +1,10 @@
 import 'package:pangolin/components/overlays/quick_settings/pages/qs_event/color_picker.dart';
 import 'package:pangolin/components/overlays/quick_settings/widgets/qs_titlebar.dart';
-import 'package:pangolin/utils/data/common_data.dart';
 import 'package:pangolin/utils/extensions/extensions.dart';
 import 'package:pangolin/utils/other/events_manager.dart';
 import 'package:pangolin/widgets/global/box/box_container.dart';
 import 'package:pangolin/widgets/global/quick_button.dart';
+import 'package:flutter/material.dart';
 
 class QsNewEventPage extends StatefulWidget {
   const QsNewEventPage({super.key});
@@ -127,8 +127,9 @@ class _TextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BoxContainer(
-      borderRadius:
-          CommonData.of(context).borderRadius(BorderRadiusType.medium),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
       height: 48.0,
       child: Material(
         type: MaterialType.transparency,

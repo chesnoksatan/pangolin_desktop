@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin/components/settings/data/presets.dart';
-import 'package:pangolin/utils/data/common_data.dart';
 import 'package:pangolin/widgets/global/box/box_container.dart';
+import 'package:flutter/material.dart';
+import 'package:pangolin/utils/data/constants.dart';
 
 class ColorPickerController extends ValueNotifier<Color> {
   ColorPickerController({Color? value})
-      : super(value ?? SettingsPresets.accentColorPresets.first.color);
+      : super(value ?? BuiltinColor.values.first.value);
 
   Color get color => value;
   set color(Color newColor) {
@@ -28,13 +29,14 @@ class _ColorPickerState extends State<ColorPicker> {
     return SizedBox(
       height: 48.0,
       child: ListView.builder(
-        itemCount: SettingsPresets.accentColorPresets.length,
+        itemCount: BuiltinColor.values.length,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) => Row(
           children: [
             BoxContainer(
-              borderRadius:
-                  CommonData.of(context).borderRadius(BorderRadiusType.medium),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               width: 48,
               height: 48,
               child: Material(
@@ -42,20 +44,18 @@ class _ColorPickerState extends State<ColorPicker> {
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   onTap: () => setState(() {
-                    widget.controller.color =
-                        SettingsPresets.accentColorPresets[index].color;
+                    widget.controller.color = BuiltinColor.values[index].value;
                   }),
                   child: Center(
                     child: Container(
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: SettingsPresets.accentColorPresets[index].color,
-                        borderRadius: CommonData.of(context)
-                            .borderRadius(BorderRadiusType.round),
+                        color: BuiltinColor.values[index].value,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: widget.controller.color ==
-                              SettingsPresets.accentColorPresets[index].color
+                              BuiltinColor.values[index].value
                           ? const Icon(Icons.check, size: 16.0)
                           : null,
                     ),

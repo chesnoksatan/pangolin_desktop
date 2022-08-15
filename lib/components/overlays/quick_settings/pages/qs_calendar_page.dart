@@ -3,6 +3,7 @@ import 'package:pangolin/utils/extensions/extensions.dart';
 import 'package:pangolin/utils/other/events_manager.dart';
 import 'package:pangolin/widgets/global/quick_button.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:flutter/material.dart';
 
 class QsCalendarPage extends StatelessWidget {
   const QsCalendarPage({super.key});
